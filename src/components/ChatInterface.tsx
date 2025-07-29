@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Mic, ArrowUp, Wallet } from "lucide-react";
+import { Mic, ArrowUp } from "lucide-react";
 import { MarketNews } from "@/components/MarketNews";
 import { ActionModal } from "@/components/ActionModal";
 import { useToast } from "@/hooks/use-toast";
+import { ConnectButton } from "@/components/ConnectButton";
+import { sendChatMessage } from "@/lib/chatApi";
 
 interface ActionData {
   type: 'swap' | 'buy' | 'sell' | 'transfer';
@@ -130,10 +132,9 @@ export function ChatInterface() {
     window.history.replaceState({}, '', window.location.pathname);
   };
 
+  // Dummy intent detection and response logic
   const detectIntent = (userMessage: string): ActionData | null => {
     const message = userMessage.toLowerCase();
-    
-    // Buy intent
     if (message.includes('buy') && message.includes('eth')) {
       return {
         type: 'buy',
@@ -143,8 +144,6 @@ export function ChatInterface() {
         suggestedChain: 'ethereum'
       };
     }
-    
-    // Swap intent
     if (message.includes('swap') || (message.includes('to') && (message.includes('usdc') || message.includes('eth')))) {
       return {
         type: 'swap',
@@ -154,8 +153,6 @@ export function ChatInterface() {
         suggestedChain: 'ethereum'
       };
     }
-    
-    // Sell intent
     if (message.includes('sell') && message.includes('eth')) {
       return {
         type: 'sell',
@@ -165,13 +162,11 @@ export function ChatInterface() {
         suggestedChain: 'ethereum'
       };
     }
-    
     return null;
   };
 
   const generateDummyResponse = (userMessage: string): { content: string; actionData?: ActionData } => {
     const actionData = detectIntent(userMessage);
-    
     if (actionData) {
       const actionResponses = {
         buy: `I'll help you buy ${actionData.toToken} with ${actionData.fromToken}. I've found the best rates across multiple DEXs and can execute this trade for you.`,
@@ -179,20 +174,17 @@ export function ChatInterface() {
         sell: `I'll help you sell your ${actionData.fromToken} for ${actionData.toToken}. Here are the current market rates and optimal execution strategies.`,
         transfer: `I can help you transfer your ${actionData.fromToken} across chains efficiently with minimal fees.`
       };
-      
       return {
         content: actionResponses[actionData.type],
         actionData
       };
     }
-    
     const responses = [
       "I'll help you rebalance your portfolio. Based on your request for 60% stablecoins and 40% ETH, I recommend gradually moving your assets to minimize slippage and fees.",
       "Great question! For yield farming opportunities, I suggest looking at established protocols like Aave, Compound, or Uniswap V3 pools with reasonable APYs.",
       "Your portfolio analysis shows moderate risk exposure. Consider diversifying across different asset classes and maintaining some stable positions.",
       "I understand you want to optimize your DeFi strategy. Let me provide some insights based on current market conditions and your risk profile."
     ];
-    
     return { content: responses[Math.floor(Math.random() * responses.length)] };
   };
 
@@ -209,20 +201,43 @@ export function ChatInterface() {
       setMessage("");
       setIsLoading(true);
 
-      // Simulate API call delay
-      setTimeout(() => {
-        const response = generateDummyResponse(userMessage.content);
-        const assistantMessage: ChatMessage = {
-          id: Date.now().toString() + '-assistant',
-          content: response.content,
-          role: 'assistant',
-          timestamp: new Date(),
-          actionData: response.actionData
-        };
-
-        setMessages(prev => [...prev, assistantMessage]);
+      try {
+        const response = await sendChatMessage(userMessage.content);
+        if (response) {
+          // API response
+          const assistantMessage: ChatMessage = {
+            id: Date.now().toString() + '-assistant',
+            content: response.reply || "(no response)",
+            role: 'assistant',
+            timestamp: new Date(),
+            actionData: response.actionData
+          };
+          setMessages(prev => [...prev, assistantMessage]);
+        } else {
+          // Dummy fallback
+          const dummy = generateDummyResponse(userMessage.content);
+          const assistantMessage: ChatMessage = {
+            id: Date.now().toString() + '-assistant',
+            content: dummy.content,
+            role: 'assistant',
+            timestamp: new Date(),
+            actionData: dummy.actionData
+          };
+          setMessages(prev => [...prev, assistantMessage]);
+        }
+      } catch (error) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: Date.now().toString() + '-error',
+            content: "Sorry, something went wrong.",
+            role: 'assistant',
+            timestamp: new Date()
+          }
+        ]);
+      } finally {
         setIsLoading(false);
-      }, 1500);
+      }
     }
   };
 
@@ -258,10 +273,7 @@ export function ChatInterface() {
           <div className="flex items-center space-x-3">
             <h2 className="text-lg font-semibold">wac.ai</h2>
           </div>
-          <Button variant="outline" size="sm">
-            <Wallet className="h-4 w-4 mr-2" />
-            Connect Wallet
-          </Button>
+          <ConnectButton />
         </div>
 
         {/* Content */}
