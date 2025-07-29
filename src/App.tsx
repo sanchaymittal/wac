@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AppKitProvider } from "@/context/AppKitProvider";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Bots from "./pages/Bots";
@@ -9,10 +9,8 @@ import Actions from "./pages/Actions";
 import PlayToEarn from "./pages/PlayToEarn";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
-
 const App = () => (
-  <QueryClientProvider client={queryClient}>
+  <AppKitProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -27,7 +25,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
-  </QueryClientProvider>
+  </AppKitProvider>
 );
 
 export default App;
