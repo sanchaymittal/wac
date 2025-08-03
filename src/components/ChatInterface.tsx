@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Mic, ArrowUp } from "lucide-react";
+import { Mic, ArrowUp, Zap } from "lucide-react";
 import { MarketNews } from "@/components/MarketNews";
-import { ActionModal } from "@/components/ActionModal";
 import { InvestmentModal } from "@/components/InvestmentModal";
 import { BotModal } from "@/components/BotModal";
 import { ChatHistory } from "@/components/ChatHistory";
+import TalkToInvestResponse from "@/components/TalkToInvestResponse";
+import { MarkdownContent } from "@/components/MarkdownContent";
 import { useToast } from "@/hooks/use-toast";
 import { ConnectButton } from "@/components/ConnectButton";
+import { ReimagineTool } from "@/components/ReimagineTool";
 import { sendChatMessage } from "@/lib/chatApi";
+import { useAppKitAccount } from "@reown/appkit/react";
+import { TalkToInvestResponse as TalkToInvestResponseType } from "@/types/TalkToInvest";
 
 interface ActionData {
   type: 'swap' | 'buy' | 'sell' | 'transfer';
@@ -44,6 +48,11 @@ interface ChatMessage {
   actionData?: ActionData;
   investmentData?: InvestmentData;
   botData?: BotData;
+  
+  // Enhanced for Talk to Invest responses
+  actionResponse?: TalkToInvestResponseType;
+  requiresAction?: boolean;
+  isExecuting?: boolean;
 }
 
 interface ChatThread {
@@ -59,8 +68,11 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
+  const [newMessageIds, setNewMessageIds] = useState<Set<string>>(new Set());
+  const [messageCounter, setMessageCounter] = useState(0);
   
   const { toast } = useToast();
+  const { address } = useAppKitAccount();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Generate meaningful thread title from first user message
@@ -171,115 +183,20 @@ export function ChatInterface() {
     window.history.replaceState({ threadId: thread.id }, '', newUrl);
   };
 
-  // Dummy intent detection and response logic
-  const detectIntent = (userMessage: string): ActionData | null => {
-    const message = userMessage.toLowerCase();
-    if (message.includes('buy') && message.includes('eth')) {
-      return {
-        type: 'buy',
-        fromToken: 'USDC',
-        toToken: 'ETH',
-        suggestedAmount: '1000',
-        suggestedChain: 'ethereum'
-      };
-    }
-    if (message.includes('swap') || (message.includes('to') && (message.includes('usdc') || message.includes('eth')))) {
-      return {
-        type: 'swap',
-        fromToken: 'USDC',
-        toToken: 'ETH',
-        suggestedAmount: '500',
-        suggestedChain: 'ethereum'
-      };
-    }
-    if (message.includes('sell') && message.includes('eth')) {
-      return {
-        type: 'sell',
-        fromToken: 'ETH',
-        toToken: 'USDC',
-        suggestedAmount: '1',
-        suggestedChain: 'ethereum'
-      };
-    }
-    return null;
-  };
-
-  // Detect investment intent
-  const detectInvestmentIntent = (userMessage: string): InvestmentData | null => {
-    const message = userMessage.toLowerCase();
-    if (message.includes('invest') || message.includes('yield') || message.includes('staking') || message.includes('portfolio')) {
-      return {
-        type: 'investment',
-        title: 'DeFi Yield Strategy',
-        description: 'Diversified yield farming strategy across established protocols with auto-compounding features.',
-        tokens: ['ETH', 'USDC', 'AAVE', 'UNI'],
-        expectedReturn: '8.5% APY',
-        riskLevel: 'medium'
-      };
-    }
-    return null;
-  };
-
-  // Detect bot intent
-  const detectBotIntent = (userMessage: string): BotData | null => {
-    const message = userMessage.toLowerCase();
-    if (message.includes('bot') || message.includes('automate') || message.includes('trading') || message.includes('strategy')) {
-      return {
-        type: 'bot',
-        name: 'DeFi Arbitrage Bot',
-        description: 'Automated arbitrage trading bot that identifies price differences across DEXs and executes profitable trades.',
-        features: ['Cross-DEX arbitrage', 'Gas optimization', 'Real-time monitoring', 'Risk management'],
-        category: 'arbitrage'
-      };
-    }
-    return null;
-  };
-
-  const generateDummyResponse = (userMessage: string): { content: string; actionData?: ActionData; investmentData?: InvestmentData; botData?: BotData } => {
-    const actionData = detectIntent(userMessage);
-    const investmentData = detectInvestmentIntent(userMessage);
-    const botData = detectBotIntent(userMessage);
-    
-    if (actionData) {
-      const actionResponses = {
-        buy: `I'll help you buy ${actionData.toToken} with ${actionData.fromToken}. I've found the best rates across multiple DEXs and can execute this trade for you.`,
-        swap: `Perfect! I can swap your ${actionData.fromToken} to ${actionData.toToken}. Let me show you the best available rates and execution options.`,
-        sell: `I'll help you sell your ${actionData.fromToken} for ${actionData.toToken}. Here are the current market rates and optimal execution strategies.`,
-        transfer: `I can help you transfer your ${actionData.fromToken} across chains efficiently with minimal fees.`
-      };
-      return {
-        content: actionResponses[actionData.type],
-        actionData
-      };
-    }
-    
-    if (investmentData) {
-      return {
-        content: "Based on your interest in investment opportunities, I've found a promising DeFi yield strategy that matches your risk profile. This diversified approach offers stable returns while maintaining reasonable risk exposure.",
-        investmentData
-      };
-    }
-    
-    if (botData) {
-      return {
-        content: "I can help you automate your trading strategy with our advanced DeFi bot. This bot specializes in arbitrage opportunities and can help maximize your returns while you sleep.",
-        botData
-      };
-    }
-    
-    const responses = [
-      "I'll help you rebalance your portfolio. Based on your request for 60% stablecoins and 40% ETH, I recommend gradually moving your assets to minimize slippage and fees.",
-      "Great question! For yield farming opportunities, I suggest looking at established protocols like Aave, Compound, or Uniswap V3 pools with reasonable APYs.",
-      "Your portfolio analysis shows moderate risk exposure. Consider diversifying across different asset classes and maintaining some stable positions.",
-      "I understand you want to optimize your DeFi strategy. Let me provide some insights based on current market conditions and your risk profile."
-    ];
-    return { content: responses[Math.floor(Math.random() * responses.length)] };
+  const generateSimpleFallbackResponse = (): { content: string } => {
+    // Simple fallback response when all services fail
+    return { 
+      content: "I'm experiencing some technical difficulties connecting to my analysis services. Please try your request again, and I'll help you with your Web3 investing needs." 
+    };
   };
 
   const handleSend = async () => {
     if (message.trim()) {
+      const nextCounter = messageCounter + 1;
+      setMessageCounter(nextCounter);
+      
       const userMessage: ChatMessage = {
-        id: Date.now().toString() + '-user',
+        id: `${Date.now()}-${nextCounter}-user`,
         content: message.trim(),
         role: 'user',
         timestamp: new Date()
@@ -287,46 +204,66 @@ export function ChatInterface() {
 
       setMessages(prev => [...prev, userMessage]);
       setMessage("");
-      setIsLoading(true);
+      setIsLoading(true); // Show loading animation while waiting for AI response
 
       try {
-        const response = await sendChatMessage(userMessage.content);
+        console.log('🔗 Attempting main chat API...');
+        const response = await sendChatMessage(userMessage.content, currentThreadId, address);
         if (response) {
-          // API response
+          console.log('✅ Main API responded, skipping fallbacks');
+          // API response with thread management
           const assistantMessage: ChatMessage = {
-            id: Date.now().toString() + '-assistant',
+            id: `${Date.now()}-${nextCounter}-main-api`,
             content: response.reply || "(no response)",
             role: 'assistant',
             timestamp: new Date(),
-            actionData: response.actionData
+            actionData: response.actionData,
+            
+            // Enhanced Talk to Invest data
+            actionResponse: response.actionResponse,
+            requiresAction: response.requiresAction,
+            isExecuting: false
           };
+          
           setMessages(prev => [...prev, assistantMessage]);
+          // Track this as a new message for animation
+          setNewMessageIds(prev => new Set([...prev, assistantMessage.id]));
+          
+          // Update thread ID if we got a new one
+          if (response.threadId && response.threadId !== currentThreadId) {
+            setCurrentThreadId(response.threadId);
+          }
         } else {
-          // Dummy fallback
-          const dummy = generateDummyResponse(userMessage.content);
+          // Main API returned null - show simple fallback
+          console.log('🔄 Main API returned null, using simple fallback...');
+          const fallback = generateSimpleFallbackResponse();
           const assistantMessage: ChatMessage = {
-            id: Date.now().toString() + '-assistant',
-            content: dummy.content,
-            role: 'assistant',
-            timestamp: new Date(),
-            actionData: dummy.actionData,
-            investmentData: dummy.investmentData,
-            botData: dummy.botData
-          };
-          setMessages(prev => [...prev, assistantMessage]);
-        }
-      } catch (error) {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: Date.now().toString() + '-error',
-            content: "Sorry, something went wrong.",
+            id: `${Date.now()}-${nextCounter}-fallback`,
+            content: fallback.content,
             role: 'assistant',
             timestamp: new Date()
-          }
-        ]);
+          };
+          setMessages(prev => [...prev, assistantMessage]);
+          setNewMessageIds(prev => new Set([...prev, assistantMessage.id]));
+        }
+      } catch (error) {
+        console.error('💥 Chat error caught in ChatInterface:', error);
+        console.error('💥 Error details:', {
+          message: error.message,
+          stack: error.stack,
+          type: typeof error,
+          error
+        });
+        
+        const errorMessage: ChatMessage = {
+          id: `${Date.now()}-${nextCounter}-error`,
+          content: "Sorry, something went wrong. Check console for details.",
+          role: 'assistant',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMessage]);
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); // Hide loading animation once response is received
       }
     }
   };
@@ -359,6 +296,11 @@ export function ChatInterface() {
     });
   };
 
+  // Talk to Invest action handlers - executes directly
+  const handleTalkToInvestAction = (actionData: any) => {
+    handleActionExecute(actionData);
+  };
+
   const suggestedQuestions = [
     "Buy ETH with USDC",
     "Swap 1000 USDC to ETH on the cheapest route", 
@@ -377,7 +319,10 @@ export function ChatInterface() {
           <h2 className="text-lg font-semibold cursor-pointer" onClick={startNewChat}>
             wac.ai
           </h2>
-          <ConnectButton />
+          <div className="flex items-center gap-3">
+            <ReimagineTool />
+            <ConnectButton />
+          </div>
         </div>
 
         {/* Messages Area - Scrollable */}
@@ -414,31 +359,77 @@ export function ChatInterface() {
               <div className="w-full max-w-3xl mx-auto space-y-6">
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                     <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                       msg.role === 'user' 
-                         ? 'bg-accent text-accent-foreground ml-auto' 
-                         : 'bg-secondary text-secondary-foreground'
-                     }`}>
+                    {msg.role === 'user' ? (
+                      // User messages
+                      <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-accent text-accent-foreground ml-auto">
                         <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                         {msg.actionData && (
-                           <ActionModal
-                             actionData={msg.actionData}
-                             onExecute={handleActionExecute}
-                           />
-                         )}
-                         {msg.investmentData && (
-                           <InvestmentModal
-                             investmentData={msg.investmentData}
-                             onInvest={handleInvestmentExecute}
-                           />
-                         )}
-                         {msg.botData && (
-                           <BotModal
-                             botData={msg.botData}
-                             onActivate={handleBotActivate}
-                           />
-                         )}
-                     </div>
+                      </div>
+                    ) : (
+                      // Assistant messages
+                      <div className="w-full">
+                        {msg.actionResponse && msg.requiresAction ? (
+                          // Enhanced Talk to Invest response (only show when action is actually required)
+                          <TalkToInvestResponse
+                            response={{...msg.actionResponse, originalResponse: msg.content}}
+                            onPrimaryAction={handleTalkToInvestAction}
+                            isExecuting={msg.isExecuting}
+                            skipAnimation={!newMessageIds.has(msg.id)}
+                          />
+                        ) : null}
+                        {msg.actionData ? (
+                          // Legacy action data - show inline action card
+                          <div className="w-full">
+                            <div className="rounded-2xl px-4 py-3 bg-secondary text-secondary-foreground mb-4">
+                              <MarkdownContent content={msg.content} />
+                            </div>
+                            <TalkToInvestResponse
+                              response={{
+                                type: msg.actionData.type,
+                                summary: {
+                                  emoji: '🚀',
+                                  action: `${msg.actionData.type === 'buy' ? 'Buy' : 'Swap'} ${msg.actionData.toToken}`,
+                                  primaryDetails: 'Ready to execute'
+                                },
+                                metrics: [],
+                                primaryAction: {
+                                  text: `${msg.actionData.type === 'buy' ? 'Buy' : 'Swap'} ${msg.actionData.toToken}`,
+                                  emoji: '🚀',
+                                  actionType: msg.actionData.type,
+                                  disabled: false,
+                                  executionData: {
+                                    fromToken: msg.actionData.fromToken,
+                                    toToken: msg.actionData.toToken,
+                                    fromAmount: msg.actionData.suggestedAmount,
+                                    fromChain: msg.actionData.suggestedChain
+                                  }
+                                },
+                                originalResponse: msg.content,
+                                timestamp: Date.now()
+                              }}
+                              onPrimaryAction={handleTalkToInvestAction}
+                              isExecuting={false}
+                            />
+                          </div>
+                        ) : (
+                          // Plain text response
+                          <div className="rounded-2xl px-4 py-3 bg-secondary text-secondary-foreground">
+                            <MarkdownContent content={msg.content} />
+                            {msg.investmentData && (
+                              <InvestmentModal
+                                investmentData={msg.investmentData}
+                                onInvest={handleInvestmentExecute}
+                              />
+                            )}
+                            {msg.botData && (
+                              <BotModal
+                                botData={msg.botData}
+                                onActivate={handleBotActivate}
+                              />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
                 
@@ -517,7 +508,6 @@ export function ChatInterface() {
 
       {/* Market News Sidebar */}
       <MarketNews />
-
 
     </div>
   );

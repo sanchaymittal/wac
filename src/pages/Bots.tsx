@@ -1,47 +1,107 @@
 import { AppSidebar } from "@/components/AppSidebar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, TrendingUp, BarChart3, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Activity, TrendingUp, BarChart3, Zap, Play, Pause } from "lucide-react";
+import { useBots, useBotToggle } from "@/hooks/useApi";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 const Bots = () => {
-  const activeBots = [
+  const { data, isLoading, error } = useBots();
+  const botToggle = useBotToggle();
+  const { toast } = useToast();
+
+  // Hardcoded fallback data
+  const fallbackBots = [
     {
-      id: 1,
-      name: "Arbitrage Bot",
-      status: "active",
-      description: "Automatically identifies and executes arbitrage opportunities across multiple DEXs",
-      icon: TrendingUp,
+      id: "arbitrage-bot-1",
+      name: "Multi-DEX Arbitrage Bot",
+      status: "active" as const,
+      description: "Exploits price differences across DEXs for consistent profits",
+      icon: "⚡",
+      profit: "+$2,847.23",
+      trades: 156,
+      category: "arbitrage" as const,
+      created_at: Date.now() - 86400000 * 7,
+      updated_at: Date.now() - 3600000
+    },
+    {
+      id: "price-impact-tracker-1",
+      name: "Large Order Monitor",
+      status: "active" as const,
+      description: "Tracks large transactions and market impact for informed trading",
+      icon: "📊",
       profit: "+$1,245.67",
-      trades: 23
+      trades: 89,
+      category: "price-impact" as const,
+      created_at: Date.now() - 86400000 * 5,
+      updated_at: Date.now() - 7200000
     },
     {
-      id: 2,
-      name: "Price Impact Tracker",
-      status: "active",
-      description: "Monitors price impact on large trades and suggests optimal execution strategies",
-      icon: BarChart3,
-      profit: "+$892.34",
-      trades: 15
+      id: "twap-bot-1",
+      name: "TWAP Execution Engine",
+      status: "paused" as const,
+      description: "Time-weighted average price strategy for large orders",
+      icon: "⏰",
+      profit: "+$892.45",
+      trades: 23,
+      category: "twap" as const,
+      created_at: Date.now() - 86400000 * 3,
+      updated_at: Date.now() - 10800000
     },
     {
-      id: 3,
-      name: "TWAP Bot",
-      status: "active",
-      description: "Time-Weighted Average Price execution for large orders to minimize market impact",
-      icon: Activity,
-      profit: "+$567.89",
-      trades: 8
-    },
-    {
-      id: 4,
-      name: "MEV Protection Bot",
-      status: "paused",
-      description: "Protects against MEV attacks and front-running on high-value transactions",
-      icon: Zap,
-      profit: "+$234.12",
-      trades: 3
+      id: "mev-protection-1",
+      name: "MEV Shield",
+      status: "active" as const,
+      description: "Protects against MEV attacks and front-running",
+      icon: "🛡️",
+      profit: "+$1,567.89",
+      trades: 234,
+      category: "mev-protection" as const,
+      created_at: Date.now() - 86400000 * 10,
+      updated_at: Date.now() - 1800000
     }
   ];
+
+  // Use API data if available, otherwise use fallback
+  const bots = data?.bots || fallbackBots;
+  const isDemo = !data && !isLoading;
+
+  const handleToggleBot = async (botId: string, currentStatus: 'active' | 'paused') => {
+    if (isDemo) {
+      toast({
+        title: "Demo Mode",
+        description: "Bot controls disabled in demo mode. Connect to API to enable.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const result = await botToggle.mutateAsync({ botId });
+      toast({
+        title: "Bot Status Updated",
+        description: `Bot ${result.status === 'active' ? 'activated' : 'paused'} successfully`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to toggle bot status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getIcon = (category: string) => {
+    switch (category) {
+      case 'arbitrage': return TrendingUp;
+      case 'price-impact': return BarChart3;
+      case 'twap': return Activity;
+      case 'mev-protection': return Zap;
+      default: return Activity;
+    }
+  };
 
   const getStatusColor = (status: string) => {
     return status === "active" 
@@ -56,10 +116,40 @@ const Bots = () => {
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl font-bold mb-8">🤖 Bots</h1>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {activeBots.map((bot) => {
-              const IconComponent = bot.icon;
-              return (
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-full" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-8 w-1/2 mb-4" />
+                    <Skeleton className="h-10 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : error ? (
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-center text-muted-foreground">Failed to load bots. Please try again later.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div>
+              {isDemo && (
+                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    📡 API not available - showing hardcoded demo data
+                  </p>
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {bots.map((bot) => {
+                  const IconComponent = getIcon(bot.category);
+                  return (
                 <Card key={bot.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -76,21 +166,44 @@ const Bots = () => {
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground mb-4">{bot.description}</p>
-                    <div className="flex justify-between items-center text-sm">
+                    <div className="flex justify-between items-center text-sm mb-4">
                       <div className="flex flex-col">
                         <span className="text-muted-foreground">Today's P&L</span>
-                        <span className="font-medium text-green-600">{bot.profit}</span>
+                        <span className={`font-medium ${bot.profit.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
+                          {bot.profit}
+                        </span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-muted-foreground">Trades</span>
                         <span className="font-medium">{bot.trades}</span>
                       </div>
                     </div>
+                    <Button
+                      variant={bot.status === "active" ? "destructive" : "default"}
+                      size="sm"
+                      className="w-full"
+                      onClick={() => handleToggleBot(bot.id, bot.status)}
+                      disabled={botToggle.isPending || isDemo}
+                    >
+                      {bot.status === "active" ? (
+                        <>
+                          <Pause className="h-4 w-4 mr-2" />
+                          Pause Bot
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-4 w-4 mr-2" />
+                          Start Bot
+                        </>
+                      )}
+                    </Button>
                   </CardContent>
                 </Card>
               );
-            })}
-          </div>
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

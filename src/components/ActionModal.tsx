@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ArrowRight, Zap, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, Zap } from "lucide-react";
 
 interface ActionData {
   type: 'swap' | 'buy' | 'sell' | 'transfer';
@@ -15,36 +15,18 @@ interface ActionData {
   suggestedChain?: string;
 }
 
-interface InvestmentData {
-  type: 'investment';
-  title: string;
-  description: string;
-  tokens: string[];
-  expectedReturn: string;
-  riskLevel: 'low' | 'medium' | 'high';
-}
-
-interface BotData {
-  type: 'bot';
-  name: string;
-  description: string;
-  features: string[];
-  category: string;
-}
-
 interface ActionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
   actionData: ActionData;
   onExecute: (params: any) => void;
 }
 
-export function ActionModal({ actionData, onExecute }: ActionModalProps) {
+export function ActionModal({ isOpen, onClose, actionData, onExecute }: ActionModalProps) {
   const [amount, setAmount] = useState(actionData.suggestedAmount || "");
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Hardcoded values for cross-chain swap
-  const fromChain = "ethereum";
-  const toChain = "arbitrum";
-  const service = "1inch fusion +";
+  const [fromChain, setFromChain] = useState(actionData.suggestedChain || "ethereum");
+  const [toChain, setToChain] = useState(actionData.suggestedChain || "ethereum");
+  const [service, setService] = useState("1inch");
 
   const handleExecute = () => {
     onExecute({
@@ -56,6 +38,7 @@ export function ActionModal({ actionData, onExecute }: ActionModalProps) {
       toToken: actionData.toToken,
       type: actionData.type
     });
+    onClose();
   };
 
   const getActionTitle = () => {
@@ -73,77 +56,100 @@ export function ActionModal({ actionData, onExecute }: ActionModalProps) {
   };
 
   return (
-    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <div className="border border-border rounded-lg bg-card mt-3">
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="w-full justify-between p-4 h-auto">
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-primary" />
-              <span className="font-medium">{getActionTitle()}</span>
-            </div>
-            {isExpanded ? 
-              <ChevronUp className="h-4 w-4" /> : 
-              <ChevronDown className="h-4 w-4" />
-            }
-          </Button>
-        </CollapsibleTrigger>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5 text-primary" />
+            {getActionTitle()}
+          </DialogTitle>
+        </DialogHeader>
 
-        <CollapsibleContent className="px-4 pb-4">
-          <div className="space-y-4">
-            {/* Token Flow */}
-            <div className="flex items-center justify-center gap-3 p-3 bg-muted rounded-lg">
-              <Badge variant="secondary" className="px-3 py-1">
-                {actionData.fromToken}
-              </Badge>
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-              <Badge variant="default" className="px-3 py-1">
-                {actionData.toToken}
-              </Badge>
-            </div>
+        <div className="space-y-6">
+          {/* Token Flow */}
+          <div className="flex items-center justify-center gap-3 p-4 bg-muted rounded-lg">
+            <Badge variant="secondary" className="px-3 py-1">
+              {actionData.fromToken}
+            </Badge>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            <Badge variant="default" className="px-3 py-1">
+              {actionData.toToken}
+            </Badge>
+          </div>
 
-            {/* Amount Input */}
+          {/* Amount Input */}
+          <div className="space-y-2">
+            <Label htmlFor="amount">Amount</Label>
+            <Input
+              id="amount"
+              placeholder="Enter amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+
+          {/* Chain Selection */}
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
-              <Input
-                id="amount"
-                placeholder="Enter amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
+              <Label>From Chain</Label>
+              <Select value={fromChain} onValueChange={setFromChain}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ethereum">Ethereum</SelectItem>
+                  <SelectItem value="polygon">Polygon</SelectItem>
+                  <SelectItem value="arbitrum">Arbitrum</SelectItem>
+                  <SelectItem value="optimism">Optimism</SelectItem>
+                  <SelectItem value="base">Base</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-
-            {/* Chain Selection - Hardcoded for Cross-chain */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>From Chain</Label>
-                <div className="p-3 bg-muted rounded-lg border">
-                  <span className="text-sm font-medium">Ethereum</span>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>To Chain</Label>
-                <div className="p-3 bg-muted rounded-lg border">
-                  <span className="text-sm font-medium">Arbitrum</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Service Selection - Hardcoded */}
+            
             <div className="space-y-2">
-              <Label>Service</Label>
-              <div className="p-3 bg-muted rounded-lg border">
-                <span className="text-sm font-medium">1inch fusion +</span>
-              </div>
+              <Label>To Chain</Label>
+              <Select value={toChain} onValueChange={setToChain}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ethereum">Ethereum</SelectItem>
+                  <SelectItem value="polygon">Polygon</SelectItem>
+                  <SelectItem value="arbitrum">Arbitrum</SelectItem>
+                  <SelectItem value="optimism">Optimism</SelectItem>
+                  <SelectItem value="base">Base</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
 
-            {/* Action Button */}
-            <Button onClick={handleExecute} className="w-full">
+          {/* Service Selection */}
+          <div className="space-y-2">
+            <Label>Service</Label>
+            <Select value={service} onValueChange={setService}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1inch">1inch</SelectItem>
+                <SelectItem value="paraswap">ParaSwap</SelectItem>
+                <SelectItem value="uniswap">Uniswap</SelectItem>
+                <SelectItem value="sushiswap">SushiSwap</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" onClick={onClose} className="flex-1">
+              Cancel
+            </Button>
+            <Button onClick={handleExecute} className="flex-1">
               {getActionTitle()}
             </Button>
           </div>
-        </CollapsibleContent>
-      </div>
-    </Collapsible>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

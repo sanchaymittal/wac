@@ -1,4 +1,4 @@
-import { Home, Bot, Zap, Gamepad2, Plus, MessageSquare, User } from "lucide-react";
+import { Home, Bot, Zap, Plus, MessageSquare, User, Gamepad2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -12,7 +12,7 @@ export function AppSidebar() {
     { icon: MessageSquare, label: "Threads", path: "/threads", tooltip: "Chat History" },
     { icon: Bot, label: "Bots", path: "/bots", tooltip: "AI Bots" },
     { icon: Zap, label: "Actions", path: "/actions", tooltip: "Quick Actions" },
-    { icon: Gamepad2, label: "Play to Earn", path: "/play-to-earn", tooltip: "Gaming & Rewards" },
+    { icon: Gamepad2, label: "Play", path: "/play-to-earn", tooltip: "Play to Earn" },
     { icon: User, label: "User", path: "/user", tooltip: "Portfolio & Profile" },
   ];
 
