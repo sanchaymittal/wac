@@ -21,9 +21,10 @@ interface ChatHistoryProps {
   isVisible: boolean;
   onThreadSelect: (thread: ChatThread) => void;
   onNewChat: () => void;
+  onClose: () => void;
 }
 
-export function ChatHistory({ isVisible, onThreadSelect, onNewChat }: ChatHistoryProps) {
+export function ChatHistory({ isVisible, onThreadSelect, onNewChat, onClose }: ChatHistoryProps) {
   const [chatHistory, setChatHistory] = useState<ChatThread[]>([]);
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export function ChatHistory({ isVisible, onThreadSelect, onNewChat }: ChatHistor
       {/* Overlay to close sidebar when clicking outside */}
       <div 
         className="fixed inset-0 bg-black/20 z-40"
-        onClick={() => onNewChat()}
+        onClick={onClose}
       />
       
       <div className="fixed left-20 top-0 h-full w-80 bg-sidebar border-r border-sidebar-border z-50 overflow-y-auto animate-slide-in-right">

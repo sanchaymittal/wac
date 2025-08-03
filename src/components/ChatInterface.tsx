@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, ArrowUp } from "lucide-react";
 import { MarketNews } from "@/components/MarketNews";
 import { ActionModal } from "@/components/ActionModal";
+import { InvestmentModal } from "@/components/InvestmentModal";
+import { BotModal } from "@/components/BotModal";
+import { ChatHistory } from "@/components/ChatHistory";
 import { useToast } from "@/hooks/use-toast";
 import { ConnectButton } from "@/components/ConnectButton";
 import { sendChatMessage } from "@/lib/chatApi";
@@ -16,12 +19,31 @@ interface ActionData {
   suggestedChain?: string;
 }
 
+interface InvestmentData {
+  type: 'investment';
+  title: string;
+  description: string;
+  tokens: string[];
+  expectedReturn: string;
+  riskLevel: 'low' | 'medium' | 'high';
+}
+
+interface BotData {
+  type: 'bot';
+  name: string;
+  description: string;
+  features: string[];
+  category: string;
+}
+
 interface ChatMessage {
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
   actionData?: ActionData;
+  investmentData?: InvestmentData;
+  botData?: BotData;
 }
 
 interface ChatThread {
@@ -37,7 +59,9 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
+  
   const { toast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Generate meaningful thread title from first user message
   const generateThreadTitle = (firstMessage: string): string => {
@@ -122,6 +146,11 @@ export function ChatInterface() {
     }
   }, [messages]);
 
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading]);
+
   // Start new chat
   const startNewChat = () => {
     setMessages([]);
@@ -130,6 +159,16 @@ export function ChatInterface() {
     
     // Update URL to remove thread parameter
     window.history.replaceState({}, '', window.location.pathname);
+  };
+
+  // Load a specific thread
+  const loadThread = (thread: ChatThread) => {
+    setMessages(thread.messages);
+    setCurrentThreadId(thread.id);
+    
+    // Update URL with thread parameter
+    const newUrl = `${window.location.pathname}?thread=${thread.id}`;
+    window.history.replaceState({ threadId: thread.id }, '', newUrl);
   };
 
   // Dummy intent detection and response logic
@@ -165,8 +204,42 @@ export function ChatInterface() {
     return null;
   };
 
-  const generateDummyResponse = (userMessage: string): { content: string; actionData?: ActionData } => {
+  // Detect investment intent
+  const detectInvestmentIntent = (userMessage: string): InvestmentData | null => {
+    const message = userMessage.toLowerCase();
+    if (message.includes('invest') || message.includes('yield') || message.includes('staking') || message.includes('portfolio')) {
+      return {
+        type: 'investment',
+        title: 'DeFi Yield Strategy',
+        description: 'Diversified yield farming strategy across established protocols with auto-compounding features.',
+        tokens: ['ETH', 'USDC', 'AAVE', 'UNI'],
+        expectedReturn: '8.5% APY',
+        riskLevel: 'medium'
+      };
+    }
+    return null;
+  };
+
+  // Detect bot intent
+  const detectBotIntent = (userMessage: string): BotData | null => {
+    const message = userMessage.toLowerCase();
+    if (message.includes('bot') || message.includes('automate') || message.includes('trading') || message.includes('strategy')) {
+      return {
+        type: 'bot',
+        name: 'DeFi Arbitrage Bot',
+        description: 'Automated arbitrage trading bot that identifies price differences across DEXs and executes profitable trades.',
+        features: ['Cross-DEX arbitrage', 'Gas optimization', 'Real-time monitoring', 'Risk management'],
+        category: 'arbitrage'
+      };
+    }
+    return null;
+  };
+
+  const generateDummyResponse = (userMessage: string): { content: string; actionData?: ActionData; investmentData?: InvestmentData; botData?: BotData } => {
     const actionData = detectIntent(userMessage);
+    const investmentData = detectInvestmentIntent(userMessage);
+    const botData = detectBotIntent(userMessage);
+    
     if (actionData) {
       const actionResponses = {
         buy: `I'll help you buy ${actionData.toToken} with ${actionData.fromToken}. I've found the best rates across multiple DEXs and can execute this trade for you.`,
@@ -179,6 +252,21 @@ export function ChatInterface() {
         actionData
       };
     }
+    
+    if (investmentData) {
+      return {
+        content: "Based on your interest in investment opportunities, I've found a promising DeFi yield strategy that matches your risk profile. This diversified approach offers stable returns while maintaining reasonable risk exposure.",
+        investmentData
+      };
+    }
+    
+    if (botData) {
+      return {
+        content: "I can help you automate your trading strategy with our advanced DeFi bot. This bot specializes in arbitrage opportunities and can help maximize your returns while you sleep.",
+        botData
+      };
+    }
+    
     const responses = [
       "I'll help you rebalance your portfolio. Based on your request for 60% stablecoins and 40% ETH, I recommend gradually moving your assets to minimize slippage and fees.",
       "Great question! For yield farming opportunities, I suggest looking at established protocols like Aave, Compound, or Uniswap V3 pools with reasonable APYs.",
@@ -221,7 +309,9 @@ export function ChatInterface() {
             content: dummy.content,
             role: 'assistant',
             timestamp: new Date(),
-            actionData: dummy.actionData
+            actionData: dummy.actionData,
+            investmentData: dummy.investmentData,
+            botData: dummy.botData
           };
           setMessages(prev => [...prev, assistantMessage]);
         }
@@ -255,6 +345,20 @@ export function ChatInterface() {
     });
   };
 
+  const handleInvestmentExecute = (data: InvestmentData) => {
+    toast({
+      title: "Investment Initiated",
+      description: `Successfully started ${data.title} with expected ${data.expectedReturn} return`,
+    });
+  };
+
+  const handleBotActivate = (data: BotData) => {
+    toast({
+      title: "Bot Activated",
+      description: `Successfully activated ${data.name} for automated trading`,
+    });
+  };
+
   const suggestedQuestions = [
     "Buy ETH with USDC",
     "Swap 1000 USDC to ETH on the cheapest route", 
@@ -270,17 +374,17 @@ export function ChatInterface() {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="border-b border-border px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <h2 className="text-lg font-semibold">wac.ai</h2>
-          </div>
+          <h2 className="text-lg font-semibold cursor-pointer" onClick={startNewChat}>
+            wac.ai
+          </h2>
           <ConnectButton />
         </div>
 
-        {/* Content */}
-        <div className="flex-1 flex flex-col">
+        {/* Messages Area - Scrollable */}
+        <div className="flex-1 overflow-hidden">
           {messages.length === 0 ? (
             /* Welcome Screen */
-            <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+            <div className="h-full flex flex-col items-center justify-center px-6 py-8 overflow-y-auto">
               <div className="w-full max-w-3xl">
                 {/* Main Title */}
                 <div className="text-center mb-12">
@@ -306,93 +410,106 @@ export function ChatInterface() {
             </div>
           ) : (
             /* Chat Messages */
-            <div className="flex-1 overflow-y-auto px-6 py-8">
+            <div className="h-full overflow-y-auto px-6 py-8">
               <div className="w-full max-w-3xl mx-auto space-y-6">
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                      <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                        msg.role === 'user' 
-                         ? 'bg-primary text-primary-foreground ml-auto' 
-                         : 'bg-muted text-muted-foreground'
+                         ? 'bg-accent text-accent-foreground ml-auto' 
+                         : 'bg-secondary text-secondary-foreground'
                      }`}>
-                       <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                        {msg.actionData && (
-                          <ActionModal
-                            actionData={msg.actionData}
-                            onExecute={handleActionExecute}
-                          />
-                        )}
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                         {msg.actionData && (
+                           <ActionModal
+                             actionData={msg.actionData}
+                             onExecute={handleActionExecute}
+                           />
+                         )}
+                         {msg.investmentData && (
+                           <InvestmentModal
+                             investmentData={msg.investmentData}
+                             onInvest={handleInvestmentExecute}
+                           />
+                         )}
+                         {msg.botData && (
+                           <BotModal
+                             botData={msg.botData}
+                             onActivate={handleBotActivate}
+                           />
+                         )}
                      </div>
                   </div>
                 ))}
                 
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-muted">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+                 {isLoading && (
+                   <div className="flex justify-start">
+                     <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-secondary">
+                       <div className="flex space-x-1">
+                         <div className="w-2 h-2 bg-secondary-foreground rounded-full animate-bounce opacity-70"></div>
+                         <div className="w-2 h-2 bg-secondary-foreground rounded-full animate-bounce opacity-70" style={{animationDelay: '0.1s'}}></div>
+                         <div className="w-2 h-2 bg-secondary-foreground rounded-full animate-bounce opacity-70" style={{animationDelay: '0.2s'}}></div>
+                       </div>
+                     </div>
+                   </div>
+                 )}
+                 <div ref={messagesEndRef} />
+               </div>
+             </div>
+           )}
+        </div>
 
-          {/* Chat Input - Always at bottom */}
-          <div className="border-t border-border px-6 py-4">
-            <div className="w-full max-w-3xl mx-auto">
-              <div className="relative bg-background border border-border rounded-3xl shadow-lg overflow-hidden">
-                <div className="flex items-end px-4 py-3">
-                  <Textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Message wac.ai..."
-                    className="flex-1 min-h-[52px] max-h-[200px] border-0 bg-transparent resize-none focus:ring-0 focus:outline-none px-3 py-3 text-base leading-6"
-                    rows={1}
-                    style={{
-                      height: 'auto',
-                      minHeight: '52px',
-                      overflowY: message.split('\n').length > 3 ? 'auto' : 'hidden'
-                    }}
-                    onInput={(e) => {
-                      const target = e.target as HTMLTextAreaElement;
-                      target.style.height = 'auto';
-                      target.style.height = Math.min(target.scrollHeight, 200) + 'px';
-                    }}
-                  />
+        {/* Chat Input - Fixed at bottom */}
+        <div className="shrink-0 border-t border-border px-6 py-4 bg-background">
+          <div className="w-full max-w-3xl mx-auto">
+            <div className="relative bg-background border border-border rounded-3xl shadow-lg overflow-hidden">
+              <div className="flex items-end px-4 py-3">
+                <Textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Message wac.ai..."
+                  className="flex-1 min-h-[52px] max-h-[200px] border-0 bg-transparent resize-none focus:ring-0 focus:outline-none px-3 py-3 text-base leading-6"
+                  rows={1}
+                  style={{
+                    height: 'auto',
+                    minHeight: '52px',
+                    overflowY: message.split('\n').length > 3 ? 'auto' : 'hidden'
+                  }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = Math.min(target.scrollHeight, 200) + 'px';
+                  }}
+                />
+                
+                <div className="flex items-center space-x-2 ml-3 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 text-muted-foreground hover:text-foreground"
+                  >
+                    <Mic className="h-5 w-5" />
+                  </Button>
                   
-                  <div className="flex items-center space-x-2 ml-3 shrink-0">
+                  {message.trim() && (
                     <Button
-                      variant="ghost"
+                      onClick={handleSend}
                       size="icon"
-                      className="h-10 w-10 text-muted-foreground hover:text-foreground"
+                      className="h-10 w-10 bg-primary hover:bg-primary/90 rounded-full"
+                      disabled={isLoading}
                     >
-                      <Mic className="h-5 w-5" />
+                      <ArrowUp className="h-5 w-5" />
                     </Button>
-                    
-                    {message.trim() && (
-                      <Button
-                        onClick={handleSend}
-                        size="icon"
-                        className="h-10 w-10 bg-primary hover:bg-primary/90 rounded-full"
-                        disabled={isLoading}
-                      >
-                        <ArrowUp className="h-5 w-5" />
-                      </Button>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
-              
-              <div className="text-center mt-3">
-                <p className="text-xs text-muted-foreground">
-                  wac.ai can make mistakes. Check important info.
-                </p>
-              </div>
+            </div>
+            
+            <div className="text-center mt-3">
+              <p className="text-xs text-muted-foreground">
+                wac.ai can make mistakes. Check important info.
+              </p>
             </div>
           </div>
         </div>
@@ -400,6 +517,7 @@ export function ChatInterface() {
 
       {/* Market News Sidebar */}
       <MarketNews />
+
 
     </div>
   );

@@ -15,7 +15,7 @@ interface ConnectButtonProps {
 
 export function ConnectButton({ className }: ConnectButtonProps) {
   return (
-    <Button variant="outline" size="sm" className={className}>
+    <Button variant="ghost" size="sm" className={`px-4 py-2 bg-sidebar border border-sidebar-border rounded-lg hover:bg-sidebar-accent text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors ${className}`}>
       <Wallet className="h-4 w-4 mr-2" />
       <appkit-button />
     </Button>

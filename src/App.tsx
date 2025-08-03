@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Bots from "./pages/Bots";
 import Actions from "./pages/Actions";
 import PlayToEarn from "./pages/PlayToEarn";
+import Threads from "./pages/Threads";
+import User from "./pages/User";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -20,6 +22,8 @@ const App = () => (
           <Route path="/bots" element={<Bots />} />
           <Route path="/actions" element={<Actions />} />
           <Route path="/play-to-earn" element={<PlayToEarn />} />
+          <Route path="/threads" element={<Threads />} />
+          <Route path="/user" element={<User />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -15,6 +15,23 @@ interface ActionData {
   suggestedChain?: string;
 }
 
+interface InvestmentData {
+  type: 'investment';
+  title: string;
+  description: string;
+  tokens: string[];
+  expectedReturn: string;
+  riskLevel: 'low' | 'medium' | 'high';
+}
+
+interface BotData {
+  type: 'bot';
+  name: string;
+  description: string;
+  features: string[];
+  category: string;
+}
+
 interface ActionModalProps {
   actionData: ActionData;
   onExecute: (params: any) => void;
@@ -22,10 +39,12 @@ interface ActionModalProps {
 
 export function ActionModal({ actionData, onExecute }: ActionModalProps) {
   const [amount, setAmount] = useState(actionData.suggestedAmount || "");
-  const [fromChain, setFromChain] = useState(actionData.suggestedChain || "ethereum");
-  const [toChain, setToChain] = useState(actionData.suggestedChain || "ethereum");
-  const [service, setService] = useState("1inch");
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Hardcoded values for cross-chain swap
+  const fromChain = "ethereum";
+  const toChain = "arbitrum";
+  const service = "1inch fusion +";
 
   const handleExecute = () => {
     onExecute({
@@ -93,55 +112,29 @@ export function ActionModal({ actionData, onExecute }: ActionModalProps) {
               />
             </div>
 
-            {/* Chain Selection */}
+            {/* Chain Selection - Hardcoded for Cross-chain */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>From Chain</Label>
-                <Select value={fromChain} onValueChange={setFromChain}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ethereum">Ethereum</SelectItem>
-                    <SelectItem value="polygon">Polygon</SelectItem>
-                    <SelectItem value="arbitrum">Arbitrum</SelectItem>
-                    <SelectItem value="optimism">Optimism</SelectItem>
-                    <SelectItem value="base">Base</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="p-3 bg-muted rounded-lg border">
+                  <span className="text-sm font-medium">Ethereum</span>
+                </div>
               </div>
               
               <div className="space-y-2">
                 <Label>To Chain</Label>
-                <Select value={toChain} onValueChange={setToChain}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ethereum">Ethereum</SelectItem>
-                    <SelectItem value="polygon">Polygon</SelectItem>
-                    <SelectItem value="arbitrum">Arbitrum</SelectItem>
-                    <SelectItem value="optimism">Optimism</SelectItem>
-                    <SelectItem value="base">Base</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="p-3 bg-muted rounded-lg border">
+                  <span className="text-sm font-medium">Arbitrum</span>
+                </div>
               </div>
             </div>
 
-            {/* Service Selection */}
+            {/* Service Selection - Hardcoded */}
             <div className="space-y-2">
               <Label>Service</Label>
-              <Select value={service} onValueChange={setService}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1inch">1inch</SelectItem>
-                  <SelectItem value="paraswap">ParaSwap</SelectItem>
-                  <SelectItem value="uniswap">Uniswap</SelectItem>
-                  <SelectItem value="sushiswap">SushiSwap</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="p-3 bg-muted rounded-lg border">
+                <span className="text-sm font-medium">1inch fusion +</span>
+              </div>
             </div>
 
             {/* Action Button */}

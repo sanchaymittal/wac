@@ -32,7 +32,7 @@ const wagmiAdapter = new WagmiAdapter({
 // Initialize AppKit
 createAppKit({
   adapters: [wagmiAdapter],
-  networks,
+  networks: networks as any,
   projectId,
   metadata,
   features: {
