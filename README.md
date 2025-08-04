@@ -1,73 +1,61 @@
-# Welcome to your Lovable project
+# 🌍 WAC - ETHGlobal Presentation
 
-## Project info
+Intro: A **conversational investment assistant** built for Web3. Think **ChatGPT meets DeFi** but with execution power
 
-**URL**: https://lovable.dev/projects/55010e4f-1b75-4664-bc33-d4eea2040eb3
+Talk to invest.
 
-## How can I edit this code?
 
-There are several ways of editing your application.
+## 🚀 Problem We Solved
+**DeFi investing is complex, fragmented, and intimidating.** Users are forced to jump between multiple dashboards, wallets, and protocols to make even a single investment decision — let alone manage risk or run strategies. Traditional DeFi interfaces are overwhelming to new users, siloed across protocols, and lack intelligence or guidance.
 
-**Use Lovable**
+## ⚡ Our Solution: Talk-to-Invest
+**A conversational investment assistant built for Web3. Think ChatGPT meets DeFi — but with execution power.**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/55010e4f-1b75-4664-bc33-d4eea2040eb3) and start prompting.
+**Tagline:** *Talk to invest.*
 
-Changes made via Lovable will be committed automatically to this repo.
+### Core Features:
+- **Chat-native investing**: Describe your investment strategy → AI builds it → Execute in one seamless flow
+- **Real-time execution**: Embedded transaction modals with live quotes inside the chat
+- **Market-aware AI**: Contextual market data and intelligent risk assessment  
+- **Bot deployment**: Launch arbitrage/yield bots via natural conversation
+- **Thread-based portfolio**: Each chat tracks a live investment strategy that evolves over time
 
-**Use your preferred IDE**
+### Target Users:
+- **Power users** wanting speed and control
+- **Newcomers** needing DeFi guidance  
+- **Protocols** wanting better user onboarding
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+**Value Proposition:** Makes DeFi interactive, intelligent, and executable — reducing complexity while unlocking idle capital.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🛠 Tech Stack
+- **Frontend**: React/Next.js + TypeScript
+- **Backend**: Node.js + Express
+- **Blockchain**: Ethereum + Solidity + Rust + Cairo + Move
+- **Database**: IPFS + PostgreSQL
+- **Deployment**: Vercel + AWS
 
-Follow these steps:
+## 🎯 Demo
+🔥 **[LIVE DEMO](https://wac-sigma.vercel.app/)** 🔥
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 🌐 Project Repositories
+**Core WAC repositories:**
+- [**WAC**](https://github.com/sanchaymittal/wac)
+- [**WAC Monorepo**](https://github.com/sanchaymittal/wac-monorepo)
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+**Multi-chain support powered by Fusion Plus:**
+- [**Aptos**](https://github.com/sanchaymittal/fusion-plus-aptos)
+- [**Stellar**](https://github.com/sanchaymittal/fusion-plus-stellar)
+- [**NEAR**](https://github.com/sanchaymittal/fusion-plus-near)
+- [**Sui**](https://github.com/sanchaymittal/fusion-plus-sui)
+- [**Starknet**](https://github.com/sanchaymittal/fusion-plus-starknet)
+- [**Monad**](https://github.com/sanchaymittal/fusion-plus-monad)
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 🔮 What's Next
+🚀 **The revolution starts here:**
+- **AI-driven investment strategies**: Personalized, adaptive strategies powered by AI
+- **Portfolio optimization**: AI-driven risk management and asset allocation
+- **Building production** ready LLM training pipelines
+- **Cross-chain execution**: Seamless multi-chain investments using fusion plus
+---
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/55010e4f-1b75-4664-bc33-d4eea2040eb3) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+*Built with ❤️ at ETHGlobal Unite - Where the impossible becomes inevitable.*
