@@ -1,9 +1,22 @@
 # 🌍 WAC - ETHGlobal Presentation
 
 Intro: A **conversational investment assistant** built for Web3. Think **ChatGPT meets DeFi** but with execution power
-
 Talk to invest.
 
+Please find the source code for integrations in Project Repositories below or here.
+
+## 🌐 Project Repositories
+**Core WAC repositories:**
+- [**https://github.com/sanchaymittal/wac**](https://github.com/sanchaymittal/wac)
+- [**https://github.com/sanchaymittal/wac-monorepo**](https://github.com/sanchaymittal/wac-monorepo)
+
+**Multi-chain support powered by Fusion Plus:**
+- [**https://github.com/sanchaymittal/fusion-plus-aptos**](https://github.com/sanchaymittal/fusion-plus-aptos)
+- [**https://github.com/sanchaymittal/fusion-plus-sui**](https://github.com/sanchaymittal/fusion-plus-sui)
+- [**https://github.com/sanchaymittal/fusion-plus-starknet**](https://github.com/sanchaymittal/fusion-plus-starknet)
+- [**https://github.com/sanchaymittal/fusion-plus-monad**](https://github.com/sanchaymittal/fusion-plus-monad)
+- [**https://github.com/sanchaymittal/fusion-plus-near**](https://github.com/sanchaymittal/fusion-plus-near)
+- [**https://github.com/sanchaymittal/fusion-plus-stellar**](https://github.com/sanchaymittal/fusion-plus-stellar)
 
 ## 🚀 Problem We Solved
 **DeFi investing is complex, fragmented, and intimidating.** Users are forced to jump between multiple dashboards, wallets, and protocols to make even a single investment decision — let alone manage risk or run strategies. Traditional DeFi interfaces are overwhelming to new users, siloed across protocols, and lack intelligence or guidance.
@@ -39,16 +52,17 @@ Talk to invest.
 
 ## 🌐 Project Repositories
 **Core WAC repositories:**
-- [**WAC**](https://github.com/sanchaymittal/wac)
-- [**WAC Monorepo**](https://github.com/sanchaymittal/wac-monorepo)
+- [**https://github.com/sanchaymittal/wac**](https://github.com/sanchaymittal/wac)
+- [**https://github.com/sanchaymittal/wac-monorepo**](https://github.com/sanchaymittal/wac-monorepo)
 
 **Multi-chain support powered by Fusion Plus:**
-- [**Aptos**](https://github.com/sanchaymittal/fusion-plus-aptos)
-- [**Stellar**](https://github.com/sanchaymittal/fusion-plus-stellar)
-- [**NEAR**](https://github.com/sanchaymittal/fusion-plus-near)
-- [**Sui**](https://github.com/sanchaymittal/fusion-plus-sui)
-- [**Starknet**](https://github.com/sanchaymittal/fusion-plus-starknet)
-- [**Monad**](https://github.com/sanchaymittal/fusion-plus-monad)
+- [**https://github.com/sanchaymittal/fusion-plus-aptos**](https://github.com/sanchaymittal/fusion-plus-aptos)
+- [**https://github.com/sanchaymittal/fusion-plus-sui**](https://github.com/sanchaymittal/fusion-plus-sui)
+- [**https://github.com/sanchaymittal/fusion-plus-starknet**](https://github.com/sanchaymittal/fusion-plus-starknet)
+- [**https://github.com/sanchaymittal/fusion-plus-monad**](https://github.com/sanchaymittal/fusion-plus-monad)
+- [**https://github.com/sanchaymittal/fusion-plus-near**](https://github.com/sanchaymittal/fusion-plus-near)
+- [**https://github.com/sanchaymittal/fusion-plus-stellar**](https://github.com/sanchaymittal/fusion-plus-stellar)
+
 
 ## 🔮 What's Next
 🚀 **The revolution starts here:**
